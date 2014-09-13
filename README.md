@@ -23,7 +23,7 @@ Build from docker file:
 ```
 git clone git@github.com:hall757/guacamole.git
 cd guacamole-mysql/datavolume
-docker build -t guacamole-mysql .
+docker build -t guacamole-data .
 docker run -i -t --name guacamole-data guacamole-data /bin/true
 cd ..
 docker build -t guacamole-mysql . 
