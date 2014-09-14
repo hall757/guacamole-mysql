@@ -24,12 +24,12 @@ Building
 Build from docker file:
 
 ```
-git clone git@github.com:hall757/guacamole.git
+git clone git@github.com:hall757/guacamole-mysql.git
 cd guacamole-mysql/datavolume
-docker build -t guacamole-data .
-docker run -i -t --name guacamole-data guacamole-data /bin/true
+docker build -t hall/guacamole-data .
+docker run -i -t --name guacamole-data hall/guacamole-data /bin/true
 cd ..
-docker build -t guacamole-mysql . 
+docker build -t hall/guacamole-mysql . 
 ```
 
 ---
@@ -46,7 +46,7 @@ docker run -d --name guacamole-guacd hall/guacamole-guacd
 Now you can launch guacamole-mysql
 
 ```
-docker run -d --link guacamole-mysqldb:mysql --link guacamole-guacd:guacd -p 8080:8080 guacamole-mysql
+docker run -d --link guacamole-mysqldb:mysql --link guacamole-guacd:guacd -p 8080:8080 hall/guacamole-mysql
 ```
 
 Browse to ```http://your-host-ip:8080```
