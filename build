@@ -1,11 +1,7 @@
 #!/bin/bash
-cd datavolume
-docker build -t guacamole-data .
-docker run -i -t --name guacamole-data guacamole-data /bin/true
-cd ..
-docker stop `docker ps -a | grep guacamole-mysql\:latest | cut -c 1-12`
-docker rm `docker ps -a | grep guacamole-mysql\:latest | cut -c 1-12`
-docker run -d --name guacamole-mysqldb --volumes-from guacamole-data -e MYSQL_ROOT_PASSWORD=guacamole stackbrew/mysql
-docker build -t guacamole-mysql .
-docker run -d --volumes-from guacamole-data --link guacamole-mysqldb:mysql -p 8080:8080 guacamole-mysql
-
+#cd datavolume
+#docker build -t guacamole-data .
+#docker run -i -t --name guacamole-data guacamole-data /bin/true
+#cd ..
+docker build -t hall/guacamole-mysql .
+./reset

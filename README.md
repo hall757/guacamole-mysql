@@ -4,9 +4,12 @@ Guacamole-mysql
 Guacamole configured with mysql authentication.
 
 default username: guacadmin
+
 default password: guacadmin
 
-Mysql database stored in a persistant data container.
+guacd runs from a separate container.
+
+Mysql database stored in a persistant data container.  Be sure to protect it from being erased.
 
 ---
 Author
@@ -33,18 +36,21 @@ docker build -t guacamole-mysql .
 Running
 ===
 
-Launch a mysql container attached to your datavolume.
+Launch a mysql container attached to your datavolume and the guacamole daemon.
 
 ```
 docker run -d --name guacamole-mysqldb --volumes-from guacamole-data -e MYSQL_ROOT_PASSWORD=guacamole stackbrew/mysql
+docker run -d --name guacamole-guacd hall/guacamole-guacd
 ```
 
 Now you can launch guacamole-mysql
 
 ```
-docker run -d --volumes-from guacamole-data --link guacamole-mysqldb:mysql -p 8080:8080 guacamole-mysql
+docker run -d --link guacamole-mysqldb:mysql --link guacamole-guacd:guacd -p 8080:8080 guacamole-mysql
 ```
 
 Browse to ```http://your-host-ip:8080```
+
 Username: guacadmin
+
 Password: guacadmin

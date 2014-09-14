@@ -1,0 +1,30 @@
+#!/bin/sh
+# Container debugging script
+
+# Shutdown and remove  any existing containers
+docker stop guacamole-mysqldb	; docker rm guacamole-mysqldb
+docker stop guacamole-mysql	; docker rm guacamole-mysql
+docker stop guacamole-guacd	; docker rm guacamole-guacd
+
+# Initialize a blank data volume
+docker rm guacamole-data
+docker run -i -t --name		guacamole-data guacamole-data true
+
+# Start a mysql database
+docker run -d	--name		guacamole-mysqldb \
+		--volumes-from	guacamole-data \
+		-e		MYSQL_ROOT_PASSWORD=guacamole \
+				stackbrew/mysql
+# Start the guacamole daemon
+docker run -d	--name		guacamole-guacd \
+				hall/guacamole-guacd
+
+# Start main container
+docker run -d	--name		guacamole-mysql \
+		--link		guacamole-mysqldb:mysql \
+		--link		guacamole-guacd:guacd \
+		-p		8080:8080 \
+				hall/guacamole-mysql
+docker ps
+# Connect shell to most recent container
+#nsenter -t $(docker inspect --format '{{ .State.Pid }}' $(docker ps -lq)) -m -u -i -n -p -w

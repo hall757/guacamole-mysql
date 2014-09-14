@@ -1,0 +1,4 @@
+#!/bin/sh
+#debug script for quick access to db from shell
+mysql -h $MYSQL_PORT_3306_TCP_ADDR --protocol=TCP --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD
+

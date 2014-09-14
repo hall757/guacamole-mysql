@@ -1,39 +1,56 @@
-#!/bin/sh
+#!/bin/bash
 # Build the guacamole config file from passed docker params
-echo "# Auth provider class"                           > /etc/guacamole/guacamole.properties
+echo "# guacd proxy"                                   > /etc/guacamole/guacamole.properties
+echo "guacd-hostname: $GUACD_PORT_4822_TCP_ADDR"      >> /etc/guacamole/guacamole.properties
+echo "guacd-port: $GUACD_PORT_4822_TCP_PORT"          >> /etc/guacamole/guacamole.properties
+echo "enable-websocket: true"                         >> /etc/guacamole/guacamole.properties
+echo "# Auth provider class"                          >> /etc/guacamole/guacamole.properties
 echo "lib-directory:  /var/lib/guacamole/classpath"   >> /etc/guacamole/guacamole.properties
 echo "auth-provider: net.sourceforge.guacamole.net.auth.mysql.MySQLAuthenticationProvider" >> /etc/guacamole/guacamole.properties
 echo "# MySQL properties"                             >> /etc/guacamole/guacamole.properties
 echo "mysql-hostname: $MYSQL_PORT_3306_TCP_ADDR"      >> /etc/guacamole/guacamole.properties
 echo "mysql-port: $MYSQL_PORT_3306_TCP_PORT"          >> /etc/guacamole/guacamole.properties
-echo "mysql-database: guacamole"                      >> /etc/guacamole/guacamole.properties
+echo "mysql-database: $GUACAMOLE_DB"                  >> /etc/guacamole/guacamole.properties
 echo "mysql-username: root"                           >> /etc/guacamole/guacamole.properties
 echo "mysql-password: $MYSQL_ENV_MYSQL_ROOT_PASSWORD" >> /etc/guacamole/guacamole.properties
 echo "mysql-disallow-simultaneous-connections: false" >> /etc/guacamole/guacamole.properties
 echo "mysql-disallow-duplicate-connections: false"    >> /etc/guacamole/guacamole.properties
-
 # Initialize the database
-if [ ! -d /var/lib/mysql/mysql ] ; then
-  echo It does not appear that mysql has initialzed /var/lib/mysql
-  echo Or you forgot to link to a data container.
-  echo 1
-fi
-if [ ! -d /var/lib/mysql/guacamole ] ; then
-  if [ ! -f /root/001-create-schema.sql ] || [ ! -f /root/002-create-admin-user.sql ] ; then
-    echo Cannot find the schema files in /root.
-    echo Pull a new hall/guacamole image to fix this.
-    exit 1
-  fi
-  echo Initializing database
-  echo create database guacamole | mysql -h $MYSQL_PORT_3306_TCP_ADDR --protocol=TCP --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD
-  #echo CREATE USER \'$MYUSER\'@\'$MYHOST\' IDENTIFIED BY \'$MYPASS\'\; | mysql
-  #echo GRANT SELECT,INSERT,UPDATE,DELETE ON $MYDATABASE.\* TO \'$MYUSER\'@\'$MYHOST\'\; | mysql
-  #echo FLUSH PRIVILEGES\; | mysql
-  cat /root/*.sql | mysql guacamole -h $MYSQL_PORT_3306_TCP_ADDR --protocol=TCP --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD
-  echo Initial setup complete
-fi
-bash
-/etc/init.d/tomcat7 start
-/etc/init.d/guacd start
-exit 0
+cat /etc/guacamole/guacamole.properties
 
+# Repeat this loop until we establish a connection to the linked mysql database
+RESULT=_
+while [ "$RESULT" != "mysql" ]; do
+ RESULT=`mysql -h $MYSQL_PORT_3306_TCP_ADDR --protocol=TCP --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD -e "SHOW DATABASES" | grep -Fo mysql`
+ sleep 5
+done
+echo Connected to mysql
+
+# Look for the guacamole authentication and create if it doesn't exist
+RESULT=`mysql -h $MYSQL_PORT_3306_TCP_ADDR --protocol=TCP --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD -e "SHOW DATABASES" | grep -Fo $GUACAMOLE_DB`
+if [ "$RESULT" != "$GUACAMOLE_DB" ]; then
+    echo creating $GUACAMOLE_DB
+    if [ ! -f /root/001-create-schema.sql ] || [ ! -f /root/002-create-admin-user.sql ] ; then
+      echo Cannot find the schema files in /root.
+      exit 1
+    fi
+    echo Initializing database
+    wait 5
+    rm -f /tmp/dbinit.log ; touch /tmp/dbinit.log
+    echo create database $GUACAMOLE_DB | mysql -h $MYSQL_PORT_3306_TCP_ADDR --protocol=TCP --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD >> /tmp/dbinit.log 
+    cat /root/001*.sql | mysql $GUACAMOLE_DB -h $MYSQL_PORT_3306_TCP_ADDR --protocol=TCP --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD >> /tmp/dbinit.log 
+    cat /root/002*.sql | mysql $GUACAMOLE_DB -h $MYSQL_PORT_3306_TCP_ADDR --protocol=TCP --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD >> /tmp/dbinit.log 
+    echo Initial setup complete
+    cat /tmp/dbinit.log
+fi
+
+# Check that the databse exists, otherwise exit with error code
+RESULT=`mysql -h $MYSQL_PORT_3306_TCP_ADDR --protocol=TCP --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD -e "SHOW DATABASES" | grep -Fo $GUACAMOLE_DB`
+if [ "$RESULT" != "$GUACAMOLE_DB" ]; then
+    echo Creation of $GUACAMOLE_DB failed
+    exit 1
+fi
+
+# startup tomcat
+/etc/init.d/tomcat7 start
+exit 0

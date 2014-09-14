@@ -1,3 +1,5 @@
 #!/bin/sh
 echo mysql database directory
-docker run -i -t --rm --volumes-from guacamole-data data busybox /bin/ls -la /var/lib/mysql
+docker run -i -t --rm --volumes-from guacamole-data guacamole-data /bin/ls -la /var/lib/mysql
+docker run -i -t --rm --volumes-from guacamole-data guacamole-data /bin/ls -la /var/lib/mysql/mysql
+
