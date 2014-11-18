@@ -46,7 +46,7 @@ docker run -d --name guacamole-guacd hall/guacamole-guacd
 Now you can launch guacamole-mysql
 
 ```
-docker run -d --link guacamole-mysqldb:mysql --link guacamole-guacd:guacd -p 8080:8080 hall/guacamole-mysql
+docker run -d --link hall/guacamole-mysqldb:mysql --link hall/guacamole-guacd:guacd -p 8080:8080 hall/guacamole-mysql
 ```
 
 Browse to ```http://your-host-ip:8080```

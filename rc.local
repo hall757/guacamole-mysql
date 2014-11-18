@@ -3,7 +3,7 @@
 echo "# guacd proxy"                                   > /etc/guacamole/guacamole.properties
 echo "guacd-hostname: $GUACD_PORT_4822_TCP_ADDR"      >> /etc/guacamole/guacamole.properties
 echo "guacd-port: $GUACD_PORT_4822_TCP_PORT"          >> /etc/guacamole/guacamole.properties
-echo "enable-websocket: true"                         >> /etc/guacamole/guacamole.properties
+echo "enable-websocket: false"                         >> /etc/guacamole/guacamole.properties
 echo "# Auth provider class"                          >> /etc/guacamole/guacamole.properties
 echo "lib-directory:  /var/lib/guacamole/classpath"   >> /etc/guacamole/guacamole.properties
 echo "auth-provider: net.sourceforge.guacamole.net.auth.mysql.MySQLAuthenticationProvider" >> /etc/guacamole/guacamole.properties
