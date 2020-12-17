@@ -1,7 +1,7 @@
 # guacamole with mysql authentication
 
 FROM hall/guacamole
-MAINTAINER Randy Hall <randy.hall@open-source.guru>
+LABEL author="Randy Hall <randy.hall@open-source.guru>"
 
 RUN rm -rf /etc/service/sshd /etc/my_init.d/00_regen_ssh_host_keys.sh || true
 RUN apt-get update && \
